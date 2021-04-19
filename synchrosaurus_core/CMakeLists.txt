@@ -8,5 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 FILE(GLOB_RECURSE LibFiles "include/*.hpp")
 add_custom_target(headers SOURCES ${LibFiles})
 
-add_executable(synchrosaurus_core main.cpp)
+add_executable(synchrosaurus_core
+  main.cpp
+  file_mode_printer.cpp
+)
+
 target_include_directories(synchrosaurus_core PUBLIC include)
