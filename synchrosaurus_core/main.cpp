@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include <syncrhosaurus_core/statx.hpp>
+#include <synchrosaurus_core/statx.hpp>
 
 namespace fs = std::filesystem;
 

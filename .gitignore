@@ -1,0 +1,3 @@
+*.user
+/build*/
+/test_structure/
