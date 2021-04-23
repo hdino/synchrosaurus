@@ -1,9 +1,12 @@
+#include <synchrosaurus_core/file_mode_printer.hpp>
+#include <synchrosaurus_core/sqlite.hpp>
+#include <synchrosaurus_core/statx.hpp>
+
+#include <sqlite3.h>
+
 #include <filesystem>
 #include <iostream>
 #include <string>
-
-#include <synchrosaurus_core/file_mode_printer.hpp>
-#include <synchrosaurus_core/statx.hpp>
 
 namespace fs = std::filesystem;
 
@@ -70,6 +73,22 @@ int main(int argc, char *argv[])
     {
         std::cout << "Usage: " << argv[0] << " [path]" << std::endl;
         return 0;
+    }
+
+    std::cout << "Using SQLite version " << sqlite3_libversion() << std::endl;
+
+    std::shared_ptr<Sqlite3Connection> db_connection;
+
+    try
+    {
+        //Sqlite3Connection db_connection("lalala.sqlite");
+        db_connection = std::make_shared<Sqlite3Connection>("lalala.sqlite");
+        createFileTable(db_connection);
+    }
+    catch (Sqlite3Error &err)
+    {
+        std::cout << err.what() << std::endl;
+        return -1;
     }
 
     fs::path scanpath(argv[1]);
