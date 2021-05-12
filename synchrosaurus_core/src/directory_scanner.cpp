@@ -1,16 +1,26 @@
+#include <synchrosaurus_core/directory_scanner.hpp>
+
 #include <synchrosaurus_core/file_mode_printer.hpp>
 #include <synchrosaurus_core/sqlite.hpp>
+#include <synchrosaurus_core/sqlite_result_codes.hpp>
 #include <synchrosaurus_core/statx.hpp>
 
-#include <sqlite3.h>
-
-#include <filesystem>
-#include <iostream>
-#include <string>
+#include <iostream> // TODO Remove
 
 namespace fs = std::filesystem;
 
-unsigned scanDirectory(const fs::path &path, unsigned parent_id)
+DirectoryScanner::DirectoryScanner(std::shared_ptr<Sqlite3Connection> db_connection)
+    : db_connection_(db_connection)
+{
+    //
+}
+
+DirectoryScanner::~DirectoryScanner()
+{
+    //
+}
+
+unsigned DirectoryScanner::scan(const fs::path &path, unsigned parent_id)
 {
     unsigned assign_id = parent_id;
 
@@ -58,46 +68,22 @@ unsigned scanDirectory(const fs::path &path, unsigned parent_id)
                   << " mode=" << st_mode
                   << " --> " << getFileModeString(statx_result.stx_mode) << "\n";
 
+        std::string sql_command =
+            "INSERT INTO t(id,name) VALUES(" +
+            std::to_string(assign_id) +
+            ",'" + entry.path().filename().string() + "');";
+        Sqlite3Statement sql_stm(sql_command, db_connection_);
+        auto eval_result = sql_stm.evaluate();
+        if (eval_result != SqliteResultCode::DoneStep)
+        {
+            throw Sqlite3Error("Insertig row failed. Reason: " + getErrorString(eval_result));
+        }
+
         if (entry.is_directory()) // TODO from statx
         {
-            assign_id = scanDirectory(entry.path(), assign_id);
+            assign_id = scan(entry.path(), assign_id);
         }
     }
 
     return assign_id;
 }
-
-int main(int argc, char *argv[])
-{
-    if (argc != 2)
-    {
-        std::cout << "Usage: " << argv[0] << " [path]" << std::endl;
-        return 0;
-    }
-
-    std::cout << "Using SQLite version " << sqlite3_libversion() << std::endl;
-
-    std::shared_ptr<Sqlite3Connection> db_connection;
-
-    try
-    {
-        //Sqlite3Connection db_connection("lalala.sqlite");
-        db_connection = std::make_shared<Sqlite3Connection>("lalala.sqlite");
-        createFileTable(db_connection);
-    }
-    catch (Sqlite3Error &err)
-    {
-        std::cout << err.what() << std::endl;
-        return -1;
-    }
-
-    fs::path scanpath(argv[1]);
-    scanpath = fs::absolute(scanpath);
-    std::cout << "Scanning " << scanpath << std::endl;
-
-    unsigned count = scanDirectory(scanpath, 0);
-    std::cout << count << std::endl;
-
-    return 0;
-}
-

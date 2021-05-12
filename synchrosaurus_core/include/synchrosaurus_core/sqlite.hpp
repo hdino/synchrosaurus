@@ -8,6 +8,8 @@
 typedef struct sqlite3 sqlite3;
 typedef struct sqlite3_stmt sqlite3_stmt;
 
+enum class SqliteResultCode : int;
+
 class Sqlite3Error : public std::runtime_error
 {
 public:
@@ -28,11 +30,11 @@ private:
 class Sqlite3Statement
 {
 public:
-    Sqlite3Statement(std::string statement,
+    Sqlite3Statement(const std::string &statement,
                      std::shared_ptr<Sqlite3Connection> db_connection);
     ~Sqlite3Statement();
 
-    void evaluate();
+    SqliteResultCode evaluate();
 
 private:
     std::string sql_statement_;

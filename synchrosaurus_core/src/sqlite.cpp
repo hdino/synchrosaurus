@@ -1,4 +1,5 @@
 #include <synchrosaurus_core/sqlite.hpp>
+#include <synchrosaurus_core/sqlite_result_codes.hpp>
 
 #include <sqlite3.h>
 
@@ -39,7 +40,7 @@ Sqlite3Connection::~Sqlite3Connection()
     }
 }
 
-Sqlite3Statement::Sqlite3Statement(std::string statement,
+Sqlite3Statement::Sqlite3Statement(const std::string &statement,
                                    std::shared_ptr<Sqlite3Connection> db_connection)
     : sql_statement_(statement)
     , db_connection_(db_connection)
@@ -67,13 +68,35 @@ Sqlite3Statement::~Sqlite3Statement()
     }
 }
 
-void Sqlite3Statement::evaluate()
+SqliteResultCode Sqlite3Statement::evaluate()
 {
     int result = sqlite3_step(statement_handle_);
-    //SQLITE_BUSY
+    return static_cast<SqliteResultCode>(result);
 }
 
 void createFileTable(std::shared_ptr<Sqlite3Connection> db_connection)
 {
+    Sqlite3Statement stm(
+        "CREATE TABLE t("
+        "id INTEGER,"
+        "name,"
+        "type,"
+        "parent,"
+        "owner_id,"
+        "group_id,"
+        "mode,"
+        "size,"
+        "created,"
+        "modified,"
+        "hash,"
+        "media_type,"
+        "metadata,"
+        "PRIMARY KEY(id ASC));",
+        db_connection);
 
+    auto eval_result = stm.evaluate();
+    if (eval_result != SqliteResultCode::DoneStep)
+    {
+        throw Sqlite3Error("Creating file table failed. Reason: " + getErrorString(eval_result));
+    }
 }

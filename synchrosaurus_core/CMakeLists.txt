@@ -11,9 +11,10 @@ FILE(GLOB_RECURSE LibFiles "include/*.hpp")
 add_custom_target(headers SOURCES ${LibFiles})
 
 add_executable(synchrosaurus_core
-  main.cpp
-  file_mode_printer.cpp
-  sqlite.cpp
+  src/main.cpp
+  src/directory_scanner.cpp
+  src/file_mode_printer.cpp
+  src/sqlite.cpp
 )
 
 target_include_directories(synchrosaurus_core PUBLIC include)
